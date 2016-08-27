@@ -1,3 +1,136 @@
 #!/usr/bin/env ruby
 
-require "nessus_console"
+require 'nessus_console'
+
+require 'logger'
+require 'optparse'
+require 'yaml'
+
+require 'pry'
+require 'nessus_rest'
+
+$PRGNAME='nessus_console'
+
+# helpful class for logger
+class MultiDelegator
+  def initialize(*targets)
+    @targets = targets
+  end
+
+  def self.delegate(*methods)
+    methods.each do |m|
+      define_method(m) do |*args|
+	@targets.map { |t| t.send(m, *args) }
+      end
+    end
+    self
+  end
+
+  class <<self
+    alias to new
+  end
+end
+
+# default $options
+$options = {}
+$options[:loglevel] = 'WARN'
+$options[:logname] = nil
+$options[:url] = 'https://localhost:8834/'
+$options[:username] = 'nessus'
+$options[:autologin] = true
+
+$nessusconsoleyaml=ENV['HOME']+'/.nessus_console'
+
+begin
+	optyaml = YAML::load_file($nessusconsoleyaml)
+rescue # Errno::ENOENT
+end
+
+if optyaml != nil then
+	$options.merge!(optyaml)
+end
+
+# initialize logger
+if $options[:logname] != nil then
+	log_file = File.open($options['logname'], 'a')
+	@log = Logger.new MultiDelegator.delegate(:write, :close).to(STDERR, log_file)
+else
+	@log = Logger.new MultiDelegator.delegate(:write, :close).to(STDERR)
+end
+loglevel =  Logger.const_get $options[:loglevel] # Logger::INFO # default is ::WARN
+@log.level = loglevel
+
+# pp $options
+
+OptionParser.new do |opts|
+	opts.banner = "Usage: #{$PRGNAME} [options]"
+
+
+	opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+		$options['verbose'] = v
+		@log.level = Logger::INFO
+	end
+
+	opts.on("-d", "--[no-]debug", "Run in debug mode") do |v|
+		$options['debug'] = v
+		@log.level = Logger::DEBUG
+	end
+
+	opts.on("-h", "--help", "Prints this help") do
+		puts opts
+		exit
+	end
+
+	opts.on("-a", "--[no-]autologin", "auto login") do |v|
+		$options[:autologin] = v
+	end
+
+	opts.on("-u", "--username USERNAME", "specify USERNAME") do |optarg|
+		$options[:username] = optarg
+	end
+
+	opts.on("-p", "--password PASSWORD", "specify PASSWORD") do |optarg|
+		$options[:password] = optarg
+	end
+
+	opts.on("-o", "--output NAME", "use NAME for output filename") do |optarg|
+		$options[:output] = optarg
+	end
+
+	opts.on("-n", "--nessus URL", "use URL for nessus") do |optarg|
+		$options[:url] = optarg
+	end
+
+	opts.on("-l", "--log FILE", "log to FILE") do |optarg|
+		$options[:logname] = optarg
+	end
+
+	opts.separator ""
+	opts.separator "Example #1: #{$PRGNAME} -n https://localhost:8834/ -u nessus -p password"
+end.parse!
+
+# pp $options
+
+def nessusload
+	optyaml = YAML::load_file($nessusconsoleyaml)
+	if optyaml != nil then
+		$options.merge!(optyaml)
+	end
+end
+
+def nessussave
+	File.open($nessusconsoleyaml, 'w') {|f| f.write $options.to_yaml }
+end
+
+# for future use
+if ARGV.empty?
+else
+end
+
+n=nil
+if $options.has_key?(:password) and $options[:autologin] then
+	n=NessusREST::Client.new($options)
+end
+
+# Pry.start
+binding.pry
