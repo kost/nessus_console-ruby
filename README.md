@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/kost/nessus_console-ruby.png)](https://travis-ci.org/kost/nessus_console-ruby)
+[![Coverage Status](https://coveralls.io/repos/kost/nessus_console-ruby/badge.png?branch=master)](https://coveralls.io/r/kost/nessus_console-ruby?branch=master)
+
 # NessusConsole
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/nessus_console`. To experiment with that code, run `bin/console` for an interactive prompt.
