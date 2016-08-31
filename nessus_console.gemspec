@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
 
+  spec.add_runtime_dependency 'table_print', '>= 0'
   spec.add_runtime_dependency 'nessus_rest', '>= 0'
   spec.add_runtime_dependency 'pry', '>= 0'
 end
