@@ -8,6 +8,7 @@ require 'yaml'
 
 require 'pry'
 require 'nessus_rest'
+require 'table_print'
 
 $PRGNAME='nessus_console'
 
