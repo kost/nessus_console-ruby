@@ -112,26 +112,15 @@ end.parse!
 
 # pp $options
 
-def nessusload
-	optyaml = YAML::load_file($nessusconsoleyaml)
-	if optyaml != nil then
-		$options.merge!(optyaml)
-	end
-end
-
-def nessussave
-	File.open($nessusconsoleyaml, 'w') {|f| f.write $options.to_yaml }
-end
-
 # for future use
 if ARGV.empty?
 else
 end
 
-n=nil
+include NessusConsole
+N=nil
 if $options.has_key?(:password) and $options[:autologin] then
-	n=NessusREST::Client.new($options)
+	N=NessusREST::Client.new($options)
 end
 
-# Pry.start
 binding.pry
