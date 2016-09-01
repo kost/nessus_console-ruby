@@ -14,6 +14,10 @@ module NessusConsole
     File.open($nessusconsoleyaml, 'w') {|f| f.write $options.to_yaml }
   end
 
+  def connect
+    N=NessusREST::Client.new($options)
+  end
+
   def rscans
     N.list_scans['scans']
   end
