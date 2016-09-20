@@ -1,8 +1,7 @@
 require "nessus_console/version"
+require "nessus_console/help"
 
 module NessusConsole
-  attr_accessor :N
-
   def load
 	  optyaml = YAML::load_file($nessusconsoleyaml)
 	  if optyaml != nil then
@@ -10,16 +9,20 @@ module NessusConsole
 	  end
   end
 
+  def neshelp
+    NessusConsole::Help::neshelp()
+  end
+
   def save
     File.open($nessusconsoleyaml, 'w') {|f| f.write $options.to_yaml }
   end
 
   def connect
-    N=NessusREST::Client.new($options)
+    $n=NessusREST::Client.new($options)
   end
 
   def rscans
-    N.list_scans['scans']
+    $n.list_scans['scans']
   end
 
   def scans(*args)
@@ -27,7 +30,7 @@ module NessusConsole
   end
 
   def rscansmy
-    ret=N.list_scans['scans']
+    ret=$n.list_scans['scans']
     selscans=ret.select do |scan|
       scan['folder_id']=='2'
     end
@@ -39,7 +42,7 @@ module NessusConsole
   end
 
   def rfamilies
-    tp N.list_families['families']
+    tp $n.list_families['families']
   end
 
   def families(*args)
@@ -47,7 +50,7 @@ module NessusConsole
   end
 
   def rfolders
-    tp N.list_scans['folders']
+    tp $n.list_scans['folders']
   end
 
   def folders(*args)
@@ -55,7 +58,7 @@ module NessusConsole
   end
 
   def rusers
-    N.list_users['users']
+    $n.list_users['users']
   end
 
   def users(*args)
@@ -63,11 +66,25 @@ module NessusConsole
   end
 
   def rhosts(id)
-    N.scan_details(id)["hosts"]
+    $n.scan_details(id)['hosts']
   end
 
   def hosts(id,*args)
     tp rhosts(id), args
+  end
+
+  def rhostsvulns(id)
+    filtered=Array.new
+    rhosts(id).each do |h|
+      if h[:critical]>0 then
+        filtered.push h
+      end
+    end
+    return filtered
+  end
+
+  def hostsvulns(id)
+    tp rhostsvulns(id)
   end
 
   def hostsbrief(id)
@@ -75,7 +92,7 @@ module NessusConsole
   end
 
   def rvulns(id)
-    N.scan_details(id)["vulnerabilities"]
+    $n.scan_details(id)['vulnerabilities']
   end
 
   def vulns (id, *args)

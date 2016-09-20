@@ -118,9 +118,9 @@ else
 end
 
 include NessusConsole
-N=nil
+# $n=nil
 if $options.has_key?(:password) and $options[:autologin] then
-	N=NessusREST::Client.new($options)
+	$n=NessusREST::Client.new($options)
 end
 
 binding.pry
